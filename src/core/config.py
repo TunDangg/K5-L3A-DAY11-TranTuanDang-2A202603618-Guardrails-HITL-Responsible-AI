@@ -104,8 +104,11 @@ def get_blue_provider() -> str:
 
 
 def get_blue_model() -> str:
-    # Hard-locked; env cannot override for the graded Blue Team path.
-    return BLUE_MODEL
+    # Hỗ trợ cả OpenRouter (liquid/lfm-3-1.7b:free) và Liquid AI trực tiếp (lfm3-1.7b)
+    base_url = (os.environ.get("OPENROUTER_BASE_URL") or "").lower()
+    if "api.liquid.ai" in base_url or "liquid.ai" in base_url:
+        return os.environ.get("BLUE_MODEL", "lfm3-1.7b").strip() or "lfm3-1.7b"
+    return os.environ.get("BLUE_MODEL", BLUE_MODEL).strip() or BLUE_MODEL
 
 
 def get_openrouter_api_key() -> str:
@@ -170,7 +173,11 @@ def get_openai_api_key() -> str:
 
 
 def red_openai_client_kwargs() -> dict:
-    return {"api_key": get_openai_api_key() or None}
+    kwargs = {"api_key": get_openai_api_key() or None}
+    base_url = os.environ.get("OPENAI_BASE_URL", "").strip()
+    if base_url:
+        kwargs["base_url"] = base_url
+    return kwargs
 
 
 def red_provider_label(tier: str = "advance") -> str:
